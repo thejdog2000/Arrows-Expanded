@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "minecraft-arrows-expanded",
+  "version": "${version}",
+  "name": "Minecraft Arrows Expanded",
+  "description": "Cycle bow arrow modes with left click and fire arrows with special effects.",
+  "authors": [
+    "jacobs"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/minecraft-arrows-expanded/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.jacobs.mae.ArrowsExpandedMod"
+    ],
+    "client": [
+      "com.jacobs.mae.client.ArrowsExpandedClient"
+    ]
+  },
+  "mixins": [
+    "minecraft-arrows-expanded.mixins.json",
+    {
+      "config": "minecraft-arrows-expanded.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}

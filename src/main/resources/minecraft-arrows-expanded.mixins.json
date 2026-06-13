@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "com.jacobs.mae.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "AbstractArrowMixin",
+    "BowItemMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
