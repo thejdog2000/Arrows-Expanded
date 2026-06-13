@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.minecraft.entity.projectile.PersistentProjectileEntity;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 
 public final class ArrowEffectTracker {
     private static final Map<UUID, ArrowMode> ARROW_MODES = new ConcurrentHashMap<>();
@@ -12,13 +12,13 @@ public final class ArrowEffectTracker {
     private ArrowEffectTracker() {
     }
 
-    public static void tag(PersistentProjectileEntity arrow, ArrowMode mode) {
+    public static void tag(AbstractArrow arrow, ArrowMode mode) {
         if (mode != ArrowMode.REGULAR) {
-            ARROW_MODES.put(arrow.getUuid(), mode);
+            ARROW_MODES.put(arrow.getUUID(), mode);
         }
     }
 
-    public static ArrowMode consume(PersistentProjectileEntity arrow) {
-        return ARROW_MODES.remove(arrow.getUuid());
+    public static ArrowMode consume(AbstractArrow arrow) {
+        return ARROW_MODES.remove(arrow.getUUID());
     }
 }

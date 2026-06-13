@@ -1,6 +1,6 @@
 # Minecraft Arrows Expanded
 
-Fabric mod for Minecraft `1.21.11` that lets players cycle special bow arrow modes with left click.
+Fabric mod for Minecraft `26.1.2` that lets players cycle special bow arrow modes with left click.
 
 ## Controls
 

@@ -1,32 +1,33 @@
 package com.jacobs.mae;
 
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LightningEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.projectile.PersistentProjectileEntity;
-import net.minecraft.network.packet.s2c.play.PositionFlag;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LightningBolt;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Relative;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.Vec3;
 
 public final class ArrowEffects {
     private ArrowEffects() {
     }
 
-    public static void apply(PersistentProjectileEntity arrow, ArrowMode mode, Vec3d hitLocation, Entity hitEntity) {
-        if (!(arrow.getEntityWorld() instanceof ServerWorld level) || mode == null || mode == ArrowMode.REGULAR) {
+    public static void apply(AbstractArrow arrow, ArrowMode mode, Vec3 hitLocation, Entity hitEntity) {
+        if (!(arrow.level() instanceof ServerLevel level) || mode == null || mode == ArrowMode.REGULAR) {
             return;
         }
 
         switch (mode) {
-            case WEB_3X1 -> placeWebColumn(level, BlockPos.ofFloored(hitLocation));
+            case WEB_3X1 -> placeWebColumn(level, BlockPos.containing(hitLocation));
             case LIGHTNING -> strikeLightning(level, hitLocation);
-            case EXPLOSIVE -> level.createExplosion(arrow, hitLocation.x, hitLocation.y, hitLocation.z, 3.0F, World.ExplosionSourceType.BLOCK);
+            case EXPLOSIVE -> level.explode(arrow, hitLocation.x, hitLocation.y, hitLocation.z, 3.0F, Level.ExplosionInteraction.BLOCK);
             case NAPALM_EXPLOSIVE -> napalm(level, arrow, hitLocation, hitEntity);
             case KNOCKBACK -> knockBack(arrow, hitEntity);
             case TELEPORT -> teleportOwner(arrow, level, hitLocation);
@@ -37,56 +38,54 @@ public final class ArrowEffects {
         arrow.discard();
     }
 
-    private static void placeWebColumn(ServerWorld level, BlockPos center) {
+    private static void placeWebColumn(ServerLevel level, BlockPos center) {
         for (int y = 0; y < 3; y++) {
-            BlockPos pos = center.up(y);
+            BlockPos pos = center.above(y);
             if (level.getBlockState(pos).isAir()) {
-                level.setBlockState(pos, Blocks.COBWEB.getDefaultState());
+                level.setBlockAndUpdate(pos, Blocks.COBWEB.defaultBlockState());
             }
         }
     }
 
-    private static void strikeLightning(ServerWorld level, Vec3d hitLocation) {
-        LightningEntity lightning = EntityType.LIGHTNING_BOLT.create(level, SpawnReason.TRIGGERED);
+    private static void strikeLightning(ServerLevel level, Vec3 hitLocation) {
+        LightningBolt lightning = EntityType.LIGHTNING_BOLT.create(level, EntitySpawnReason.TRIGGERED);
         if (lightning != null) {
-            lightning.refreshPositionAfterTeleport(hitLocation);
-            level.spawnEntity(lightning);
+            lightning.setPos(hitLocation);
+            level.addFreshEntity(lightning);
         }
     }
 
-    private static void napalm(ServerWorld level, PersistentProjectileEntity arrow, Vec3d hitLocation, Entity hitEntity) {
-        level.createExplosion(arrow, hitLocation.x, hitLocation.y, hitLocation.z, 2.75F, World.ExplosionSourceType.NONE);
+    private static void napalm(ServerLevel level, AbstractArrow arrow, Vec3 hitLocation, Entity hitEntity) {
+        level.explode(arrow, hitLocation.x, hitLocation.y, hitLocation.z, 2.75F, Level.ExplosionInteraction.NONE);
 
-        BlockPos center = BlockPos.ofFloored(hitLocation);
-        for (BlockPos pos : BlockPos.iterate(center.add(-1, 0, -1), center.add(1, 1, 1))) {
+        BlockPos center = BlockPos.containing(hitLocation);
+        for (BlockPos pos : BlockPos.betweenClosed(center.offset(-1, 0, -1), center.offset(1, 1, 1))) {
             if (level.getBlockState(pos).isAir()) {
-                level.setBlockState(pos, Blocks.FIRE.getDefaultState());
+                level.setBlockAndUpdate(pos, Blocks.FIRE.defaultBlockState());
             }
         }
 
         if (hitEntity != null) {
-            hitEntity.setOnFireFor(6.0F);
+            hitEntity.igniteForSeconds(6.0F);
         }
     }
 
-    private static void knockBack(PersistentProjectileEntity arrow, Entity hitEntity) {
+    private static void knockBack(AbstractArrow arrow, Entity hitEntity) {
         if (hitEntity == null) {
             return;
         }
 
-        Vec3d targetPos = new Vec3d(hitEntity.getX(), hitEntity.getY(), hitEntity.getZ());
-        Vec3d arrowPos = new Vec3d(arrow.getX(), arrow.getY(), arrow.getZ());
-        Vec3d push = targetPos.subtract(arrowPos).normalize().multiply(2.0).add(0.0, 0.6, 0.0);
-        hitEntity.addVelocity(push);
-        hitEntity.velocityDirty = true;
+        Vec3 push = hitEntity.position().subtract(arrow.position()).normalize().scale(2.0).add(0.0, 0.6, 0.0);
+        hitEntity.push(push);
+        hitEntity.hurtMarked = true;
     }
 
-    private static void teleportOwner(PersistentProjectileEntity arrow, ServerWorld level, Vec3d hitLocation) {
+    private static void teleportOwner(AbstractArrow arrow, ServerLevel level, Vec3 hitLocation) {
         Entity owner = arrow.getOwner();
-        if (owner instanceof ServerPlayerEntity player) {
-            player.teleport(level, hitLocation.x, hitLocation.y + 0.2, hitLocation.z, java.util.Set.<PositionFlag>of(), player.getYaw(), player.getPitch(), true);
+        if (owner instanceof ServerPlayer player) {
+            player.teleportTo(level, hitLocation.x, hitLocation.y + 0.2, hitLocation.z, java.util.Set.<Relative>of(), player.getYRot(), player.getXRot(), true);
         } else if (owner instanceof LivingEntity livingEntity) {
-            livingEntity.teleport(level, hitLocation.x, hitLocation.y + 0.2, hitLocation.z, java.util.Set.<PositionFlag>of(), livingEntity.getYaw(), livingEntity.getPitch(), true);
+            livingEntity.teleportTo(level, hitLocation.x, hitLocation.y + 0.2, hitLocation.z, java.util.Set.<Relative>of(), livingEntity.getYRot(), livingEntity.getXRot(), true);
         }
     }
 }

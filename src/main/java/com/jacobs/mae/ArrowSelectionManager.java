@@ -4,8 +4,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 
 public final class ArrowSelectionManager {
     private static final Map<UUID, PlayerArrowState> PLAYER_STATES = new ConcurrentHashMap<>();
@@ -13,11 +13,11 @@ public final class ArrowSelectionManager {
     private ArrowSelectionManager() {
     }
 
-    public static ArrowMode getSelected(ServerPlayerEntity player) {
+    public static ArrowMode getSelected(ServerPlayer player) {
         return stateFor(player).selectedMode;
     }
 
-    public static ArrowMode inspectOrCycle(ServerPlayerEntity player) {
+    public static ArrowMode inspectOrCycle(ServerPlayer player) {
         PlayerArrowState state = stateFor(player);
 
         if (state.hasInspected) {
@@ -30,14 +30,14 @@ public final class ArrowSelectionManager {
         return state.selectedMode;
     }
 
-    public static void announce(ServerPlayerEntity player, ArrowMode mode) {
-        Text message = Text.literal("Arrow selected: " + mode.displayName());
-        player.sendMessage(message, true);
-        ArrowsExpandedMod.LOGGER.info("{} selected arrow mode {}", player.getName().getString(), mode.displayName());
+    public static void announce(ServerPlayer player, ArrowMode mode) {
+        Component message = Component.literal("Arrow selected: " + mode.displayName());
+        player.sendSystemMessage(message, true);
+        ArrowsExpandedMod.LOGGER.info("{} selected arrow mode {}", player.getGameProfile().name(), mode.displayName());
     }
 
-    private static PlayerArrowState stateFor(ServerPlayerEntity player) {
-        return PLAYER_STATES.computeIfAbsent(player.getUuid(), id -> new PlayerArrowState());
+    private static PlayerArrowState stateFor(ServerPlayer player) {
+        return PLAYER_STATES.computeIfAbsent(player.getUUID(), id -> new PlayerArrowState());
     }
 
     private static final class PlayerArrowState {
