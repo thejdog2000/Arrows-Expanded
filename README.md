@@ -7,14 +7,14 @@ Fabric mod for Minecraft `26.1.2` that lets players cycle special bow arrow mode
 - Hold a bow and left click.
 - The first left click only shows the currently selected arrow mode.
 - Each later left click advances one step through the carousel:
-  `Regular -> Web 3x1 -> Lightning -> Explosive -> Napalm Explosive -> Knock Back -> Teleport -> Regular`
+  `Regular -> Web 3x2 -> Lightning -> Explosive -> Napalm Explosive -> Knock Back -> Teleport -> Regular`
 - The selected mode is shown in the action bar and written to the log.
 - Shoot the bow normally to fire the selected arrow type.
 
 ## Arrow Modes
 
 - `Regular`: vanilla arrow behavior.
-- `Web 3x1`: places a 3-block vertical cobweb column on impact.
+- `Web 3x2`: places a 3-wide by 2-tall cobweb sheet on impact.
 - `Lightning`: summons lightning on impact.
 - `Explosive`: creates a small block-breaking explosion.
 - `Napalm Explosive`: creates a small non-block-breaking explosion, fire around impact, and briefly burns hit entities.

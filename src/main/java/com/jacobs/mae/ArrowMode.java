@@ -2,7 +2,7 @@ package com.jacobs.mae;
 
 public enum ArrowMode {
     REGULAR("Regular"),
-    WEB_3X1("Web 3x1"),
+    WEB_3X1("Web 3x2"),
     LIGHTNING("Lightning"),
     EXPLOSIVE("Explosive"),
     NAPALM_EXPLOSIVE("Napalm Explosive"),
