@@ -1,7 +1,6 @@
 package com.jacobs.mae;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -16,6 +15,10 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 
 public final class ArrowEffects {
+    private static final float EXPLOSIVE_POWER = 1.25F;
+    private static final float NAPALM_EXPLOSIVE_POWER = 1.0F;
+    private static final float NAPALM_BURN_SECONDS = 4.0F;
+
     private ArrowEffects() {
     }
 
@@ -27,7 +30,7 @@ public final class ArrowEffects {
         switch (mode) {
             case WEB_3X1 -> placeWebColumn(level, BlockPos.containing(hitLocation));
             case LIGHTNING -> strikeLightning(level, hitLocation);
-            case EXPLOSIVE -> level.explode(arrow, hitLocation.x, hitLocation.y, hitLocation.z, 3.0F, Level.ExplosionInteraction.BLOCK);
+            case EXPLOSIVE -> level.explode(arrow, hitLocation.x, hitLocation.y, hitLocation.z, EXPLOSIVE_POWER, Level.ExplosionInteraction.BLOCK);
             case NAPALM_EXPLOSIVE -> napalm(level, arrow, hitLocation, hitEntity);
             case KNOCKBACK -> knockBack(arrow, hitEntity);
             case TELEPORT -> teleportOwner(arrow, level, hitLocation);
@@ -56,7 +59,7 @@ public final class ArrowEffects {
     }
 
     private static void napalm(ServerLevel level, AbstractArrow arrow, Vec3 hitLocation, Entity hitEntity) {
-        level.explode(arrow, hitLocation.x, hitLocation.y, hitLocation.z, 2.75F, Level.ExplosionInteraction.NONE);
+        level.explode(arrow, hitLocation.x, hitLocation.y, hitLocation.z, NAPALM_EXPLOSIVE_POWER, Level.ExplosionInteraction.NONE);
 
         BlockPos center = BlockPos.containing(hitLocation);
         for (BlockPos pos : BlockPos.betweenClosed(center.offset(-1, 0, -1), center.offset(1, 1, 1))) {
@@ -66,7 +69,7 @@ public final class ArrowEffects {
         }
 
         if (hitEntity != null) {
-            hitEntity.igniteForSeconds(6.0F);
+            hitEntity.igniteForSeconds(NAPALM_BURN_SECONDS);
         }
     }
 

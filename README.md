@@ -16,8 +16,8 @@ Fabric mod for Minecraft `26.1.2` that lets players cycle special bow arrow mode
 - `Regular`: vanilla arrow behavior.
 - `Web 3x1`: places a 3-block vertical cobweb column on impact.
 - `Lightning`: summons lightning on impact.
-- `Explosive`: creates a block-breaking explosion.
-- `Napalm Explosive`: creates a non-block-breaking explosion, fire around impact, and burns hit entities.
+- `Explosive`: creates a small block-breaking explosion.
+- `Napalm Explosive`: creates a small non-block-breaking explosion, fire around impact, and briefly burns hit entities.
 - `Knock Back`: launches the hit entity away from the impact.
 - `Teleport`: teleports the shooter to the arrow impact.
 
